@@ -1,5 +1,5 @@
 export interface Commit {
-    hash: string;
-    title: string;
-    commitMessage: string;
+    hash?: string;
+    name?: string;
+    commitMessage?: string;
 }
