@@ -2,11 +2,11 @@ import { reject } from 'lodash';
 import * as vscode from 'vscode';
 
 import { commits, pull } from './services/git';
-import { html } from './template';
+import { listTemplate } from './template/list';
 
 
 export class CommitViewProvider {
-    private _panel?: vscode.WebviewPanel;
+    private _panel?: vscode.WebviewPanel|null;
     private _fsPath?: string;
 
     constructor() {
@@ -23,17 +23,15 @@ export class CommitViewProvider {
         pull(this._fsPath);
     }
 
-    set panel(panel: vscode.WebviewPanel) {
+    set panel(panel: vscode.WebviewPanel|null) {
         this._panel = panel;
     }
 
     private async getInitHtml(webview: vscode.Webview): Promise<string> {
         if (this._fsPath) {
-            // const cwd = vscode.workspace.rootPath;
             await pull(this._fsPath);
-            // const tagList = await tags(cwd);
             const tagList = await commits(this._fsPath);
-            return html(tagList, webview);
+            return listTemplate(tagList, webview);
         }
 
         vscode.window.showWarningMessage(`Failed to get fsPath`);

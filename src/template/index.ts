@@ -1,34 +1,26 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-const t = require('lodash/template');
-
-import { Commit } from '../models';
+import t = require('lodash/template');
 
 function compile(webview: vscode.Webview) {
     return t(`
-    <html>
-        <link rel="stylesheet" href="${assetPath(webview, 'css', 'commit.css')}" >
-        <body>
-            <div id="container" class="ag-theme-blue"></div>
-
-            <script>
-            window.rows = <%= JSON.stringify(obj.tags) %>
-            </script>
-            <script src="${assetPath(webview, 'js', 'aggrid.js')}"></script>
-            <script src="${assetPath(webview, 'js', 'app.js')}"></script>
-        </body>
-    </html>
-`, { variable: 'obj' });
+        <html>
+            <meta http-equiv="Content-Security-Policy" content="default-src self; img-src vscode-resource:; script-src vscode-resource: 'self' 'unsafe-inline'; style-src vscode-resource: 'self' 'unsafe-inline'; "/>
+            <link rel="stylesheet" href="${assetPath(webview, 'css', 'commit.css')}" >
+            <body>
+               <%= data.body %>
+            </body>
+        </html>
+    `, { variable: 'data' });
 }
 
-
-export function html(commits: Array<Commit>, webview: vscode.Webview) {
+export function html(webview: vscode.Webview, body: string) {
     return compile(webview)({
-        commits
+        body
     });
 }
 
-function assetPath(webview: vscode.Webview, ...args: string[]) {
-    return webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, '..', '..', 'assets', ...args)));
+export function assetPath(webview: vscode.Webview, ...args: string[]): vscode.Uri {
+    return webview.asWebviewUri(vscode.Uri.file(path.join(__dirname, '..', 'assets', ...args)));
 }
 

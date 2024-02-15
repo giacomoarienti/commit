@@ -1,78 +1,36 @@
-import * as child_process from 'child_process';
 import * as vscode from 'vscode';
+import { simpleGit, SimpleGit } from 'simple-git';
 
-import { GitExtension } from './api/git';
-import { Commit } from '../models';
+import { Commit } from '../models/commit';
 
 const gitpath = vscode.workspace.getConfiguration('git').get('path') || 'git';
 
 
-export function commits(cwd: string): Promise<Array<Commit>> {
-    return new Promise((resolve, reject) => {
+export async function commits(cwd: string): Promise<Array<Commit>> {
+    console.log('call commits(), cwd:', cwd);
+    const git: SimpleGit = simpleGit(cwd);
 
-        child_process.exec(gitpath + ' log --tags --decorate --simplify-by-decoration --oneline', {
-            cwd: cwd
-        }, (error, stdout, stderr) => {
-            if (error) {
-                return reject(error);
-            }
-            if (stderr) {
-                return reject(stderr);
-            }
-
-            const commits: Array<Commit> = stdout
-                .replace(/\r\n/mg, '\n')
-                .split('\n')
-                .flatMap(line => {
-                    const matched = line.match(/([a-z0-9]{7})\s\((.*)\)\s(.*)/);
-                    if (matched) {
-                        return {
-                            hash: matched[1],
-                            name: matched[2].match(/\s([^,\s]+)/)?.[1],
-                            commitMessage: matched[3]
-                        };
-                    }
-
-                    return [];
-                });
-
-
-            resolve(commits);
-        });
-
+    const logs = await git.log();
+    const commits: Array<Commit> = logs.all.map((log) => {
+        return {
+            hash: log.hash,
+            date: log.date,
+            message: log.message,
+        };
     });
-
+    console.log('commits:', commits);
+    return commits;
 }
 
-export function pull(cwd: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        child_process.exec(gitpath + ' pull', {
-            cwd: cwd
-        }, (error, stdout, stderr) => {
-            if (error) {
-                return reject(`PULL_FAILED: ${error.message}`);
-            }
-            if (stderr && !/\[new tag\]/.test(stderr)) {
-                return reject(`PULL_FAILED: ${stderr}`);
-            }
-            resolve('PULL');
-        });
-    });
+export async function pull(cwd: string): Promise<void> {
+    console.log('call pull(), cwd:', cwd);
+    const git: SimpleGit = simpleGit(cwd);
+    await git.pull();
 }
 
 
-export function push(cwd: string): Promise<string> {
-    return new Promise((resolve, reject) => {
-        child_process.exec(gitpath + ' push', {
-            cwd: cwd
-        }, (error, stdout, stderr) => {
-            if (error) {
-                return reject(`SYNC_FAILED: ${error.message}`);
-            }
-            if (stderr && !/\[new tag\]/.test(stderr)) {
-                return reject(`SYNC_FAILED: ${stderr}`);
-            }
-            resolve('SYNCED');
-        });
-    });
+export async function push(cwd: string): Promise<void> {
+    console.log('call push(), cwd:', cwd);
+    const git: SimpleGit = simpleGit(cwd);
+    await git.push();
 }

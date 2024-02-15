@@ -15,7 +15,7 @@
     "commands": [
       {
         "command": "commit.list",
-        "title": "List Commits"
+        "title": "Commit: List all commits"
       }
     ]
   },
@@ -48,6 +48,7 @@
     "webpack-cli": "^5.0.1"
   },
   "dependencies": {
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "simple-git": "^3.22.0"
   }
 }

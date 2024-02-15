@@ -2,12 +2,11 @@ import * as vscode from 'vscode';
 
 import { CommitViewProvider } from '../commitViewProvider';
 
-let panel: vscode.WebviewPanel;
+let panel: vscode.WebviewPanel|null;
 
 export function list(context: vscode.ExtensionContext, provider: CommitViewProvider, refreshView: Function): vscode.Disposable {
     return vscode.commands.registerCommand('commit.list', async function () {
         // The code you place here will be executed every time your command is executed
-
         if (!vscode.workspace.workspaceFolders || !vscode.workspace.workspaceFolders.length) {
             return vscode.window.showWarningMessage(`Commit cannot be actived since no code repo opened`);
         }
@@ -34,13 +33,14 @@ export function list(context: vscode.ExtensionContext, provider: CommitViewProvi
 }
 
 function createWebPanel(context: vscode.ExtensionContext, provider: CommitViewProvider) {
-    panel = vscode.window.createWebviewPanel('commit', 'commit', vscode.ViewColumn.One, {
+    panel = vscode.window.createWebviewPanel('commit', 'Commit', vscode.ViewColumn.One, {
         enableScripts: true
     });
+    
     panel.onDidDispose(
         () => {
             // When the panel is closed, cancel any future updates to the webview content
-            // panel = null;
+            panel = null;
             provider.panel = panel;
         },
         null,
